@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // Great Lakes HPC partition configurations with TRES billing weights
 const PARTITION_RATES = {
@@ -115,7 +115,27 @@ function App() {
   const [isArrayJob, setIsArrayJob] = useState(false);
   const [arrayJobCount, setArrayJobCount] = useState(1);
   const [showSbatch, setShowSbatch] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const sbatchRef = useRef(null);
+
+  // Initialize theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    setIsDarkMode(shouldUseDark);
+    document.documentElement.setAttribute('data-theme', shouldUseDark ? 'dark' : 'light');
+  }, []);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    const themeValue = newTheme ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', themeValue);
+    localStorage.setItem('theme', themeValue);
+  };
 
   // Handle SLURM script toggle with smooth scrolling
   const handleSbatchToggle = () => {
@@ -375,6 +395,13 @@ function App() {
   return (
     <div className="app">
       <div className="header">
+        <button 
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
+        >
+          {isDarkMode ? '☀️' : '🌙'} {isDarkMode ? 'Light' : 'Dark'}
+        </button>
         <h1>Great Lakes HPC Cost Calculator</h1>
         <p>Calculate the cost of your HPC jobs on the University of Michigan Great Lakes cluster</p>
       </div>
@@ -633,9 +660,9 @@ function App() {
             <button 
               onClick={handleSbatchToggle}
               style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
+                background: 'var(--toggle-bg)',
+                color: 'var(--results-text)',
+                border: '1px solid var(--toggle-border)',
                 borderRadius: '8px',
                 padding: '8px 16px',
                 cursor: 'pointer',
@@ -644,10 +671,10 @@ function App() {
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                e.target.style.background = 'var(--toggle-hover-bg)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.target.style.background = 'var(--toggle-bg)';
               }}
             >
               {showSbatch ? 'Hide' : 'Show'} SLURM Script
@@ -659,8 +686,8 @@ function App() {
           <div className="form-section sbatch-section">
             <h3>Example SLURM Batch Script</h3>
             <div style={{
-              background: '#2d3748',
-              color: '#e2e8f0',
+              background: 'var(--sbatch-bg)',
+              color: 'var(--sbatch-text)',
               padding: '16px',
               borderRadius: '8px',
               fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
@@ -676,7 +703,7 @@ function App() {
                   position: 'absolute',
                   top: '8px',
                   right: '8px',
-                  background: '#4a5568',
+                  background: 'var(--sbatch-button-bg)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
@@ -689,7 +716,7 @@ function App() {
               </button>
               {generateSbatchScript()}
             </div>
-            <p style={{ marginTop: '12px', fontSize: '0.9rem', color: '#718096' }}>
+            <p style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
               Save this as a <code>.sbatch</code> file and submit with: <code>sbatch your_script.sbatch</code>
             </p>
           </div>
