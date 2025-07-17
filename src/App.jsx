@@ -7,6 +7,7 @@ const PARTITION_RATES = {
     defaultCores: 1,
     defaultMemoryPerCore: 7, // GB
     maxCores: 36,
+    maxMemory: 180, // GB
     hasGPU: false,
     description: 'General purpose compute partition',
     billing: {
@@ -19,7 +20,8 @@ const PARTITION_RATES = {
     name: 'Debug',
     defaultCores: 1,
     defaultMemoryPerCore: 7, // GB
-    maxCores: 36,
+    maxCores: 8,
+    maxMemory: 40, // GB
     hasGPU: false,
     description: 'Debug partition for testing jobs',
     billing: {
@@ -32,7 +34,8 @@ const PARTITION_RATES = {
     name: 'Visualization',
     defaultCores: 1,
     defaultMemoryPerCore: 7, // GB
-    maxCores: 36,
+    maxCores: 40,
+    maxMemory: 180, // GB
     hasGPU: false,
     description: 'Visualization partition',
     billing: {
@@ -46,6 +49,7 @@ const PARTITION_RATES = {
     defaultCores: 1,
     defaultMemoryPerCore: 42, // GB (rounded from 41.75)
     maxCores: 36,
+    maxMemory: 1503, // GB
     hasGPU: false,
     description: 'High memory nodes for memory-intensive jobs',
     billing: {
@@ -58,7 +62,8 @@ const PARTITION_RATES = {
     name: 'GPU',
     defaultCores: 20,
     defaultMemoryPerCore: 5, // GB (rounded from 4.5, 90GB / 20 cores)
-    maxCores: 20,
+    maxCores: 40,
+    maxMemory: 180, // GB
     hasGPU: true,
     description: 'GPU-accelerated computing with V100 GPUs',
     billing: {
@@ -71,7 +76,8 @@ const PARTITION_RATES = {
     name: 'MIG40 GPU',
     defaultCores: 8,
     defaultMemoryPerCore: 16, // GB (rounded from 15.625, 125GB / 8 cores)
-    maxCores: 8,
+    maxCores: 64,
+    maxMemory: 1000, // GB
     hasGPU: true,
     description: 'GPU partition with 1/2 A100 GPU (40GB each)',
     billing: {
@@ -84,7 +90,8 @@ const PARTITION_RATES = {
     name: 'SPGPU',
     defaultCores: 4,
     defaultMemoryPerCore: 12, // GB (48GB / 4 cores)
-    maxCores: 4,
+    maxCores: 32,
+    maxMemory: 372, // GB
     hasGPU: true,
     description: 'SPGPU partition with A40 GPUs',
     billing: {
@@ -112,22 +119,63 @@ function App() {
   // Helper function to check if a value is empty or invalid
   const isValueEmpty = (value) => value === '' || value === null || value === undefined || isNaN(value);
 
-  // Helper function to handle input changes that allow empty values
-  const handleInputChange = (setter, minValue = 0) => (e) => {
+  // Helper function to check if a value is out of range
+  const isValueOutOfRange = (value, min, max) => {
+    if (isValueEmpty(value)) return false;
+    const numValue = Number(value);
+    return numValue < min || numValue > max;
+  };
+
+  // Helper function to get the maximum cores for the current partition
+  const getMaxCores = () => PARTITION_RATES[partition].maxCores;
+
+  // Helper function to get the maximum memory for the current partition
+  const getMaxMemory = () => PARTITION_RATES[partition].maxMemory;
+
+  // Helper function to handle input changes that allow empty values and out-of-range values
+  const handleInputChange = (setter, minValue = 0, maxValue = Infinity) => (e) => {
     const value = e.target.value;
     if (value === '') {
       setter('');
     } else {
       const numValue = parseInt(value);
       if (!isNaN(numValue)) {
-        setter(Math.max(minValue, numValue));
+        // Allow the value to be set even if out of range, so warnings can be shown
+        setter(numValue);
       }
     }
+  };
+
+  // Helper function to validate total runtime doesn't exceed 14 days
+  const validateTotalRuntime = (newDays, newHours, newMinutes, newSeconds) => {
+    const totalMinutes = newDays * 24 * 60 + newHours * 60 + newMinutes + newSeconds / 60;
+    const maxMinutes = 14 * 24 * 60; // 14 days in minutes
+    return totalMinutes <= maxMinutes;
+  };
+
+  // Special handler for time inputs that allows out-of-range values for warnings
+  const handleTimeInputChange = (setter, currentState, field) => (e) => {
+    const value = e.target.value;
+    if (value === '') {
+      setter('');
+      return;
+    }
+    
+    const numValue = parseInt(value);
+    if (isNaN(numValue) || numValue < 0) return;
+    
+    // Allow the value to be set regardless of 14-day limit for warning display
+    setter(numValue);
   };
 
   // Helper function to handle input focus and select text
   const handleInputFocus = (e) => {
     e.target.select();
+  };
+
+  // Helper function to prevent scroll wheel from changing number inputs
+  const handleInputWheel = (e) => {
+    e.target.blur();
   };
 
   // Update default values when partition changes
@@ -148,33 +196,41 @@ function App() {
     }
   }, [jobType]);
 
-  // Calculate total runtime in minutes with safe defaults
+  // Calculate total runtime in minutes with safe defaults and clamping for calculations
   const safeValue = (value, defaultValue) => isValueEmpty(value) ? defaultValue : value;
-  const safeCores = safeValue(cores, 1);
-  const safeMemory = safeValue(memory, 1);
-  const safeGpus = safeValue(gpus, 0);
-  const safeDays = safeValue(days, 0);
-  const safeHours = safeValue(hours, 0);
-  const safeMinutes = safeValue(minutes, 0);
-  const safeSeconds = safeValue(seconds, 0);
-  const safeArrayJobCount = safeValue(arrayJobCount, 1);
+  const clampedCores = Math.max(1, Math.min(getMaxCores(), safeValue(cores, 1)));
+  const clampedMemory = Math.max(1, Math.min(getMaxMemory(), safeValue(memory, 1)));
+  const clampedGpus = Math.max(0, Math.min(5, safeValue(gpus, 0)));
+  const rawDays = safeValue(days, 0);
+  const rawHours = safeValue(hours, 0);
+  const rawMinutes = safeValue(minutes, 0);
+  const rawSeconds = safeValue(seconds, 0);
+  const safeArrayJobCount = Math.max(1, safeValue(arrayJobCount, 1));
   
-  const totalMinutes = safeDays * 24 * 60 + safeHours * 60 + safeMinutes + safeSeconds / 60;
+  // Calculate total minutes from raw input
+  const totalMinutes = rawDays * 24 * 60 + rawHours * 60 + rawMinutes + rawSeconds / 60;
+  
+  // Clamp total runtime to 14 days maximum for calculations
+  const maxMinutes = 14 * 24 * 60;
+  const clampedTotalMinutes = Math.min(totalMinutes, maxMinutes);
+
+  // Check if runtime exceeds 14 days
+  const exceedsMaxRuntime = totalMinutes > (14 * 24 * 60);
 
   // Calculate cost using TRES billing weights
   const calculateCost = () => {
     const partitionData = PARTITION_RATES[partition];
     
-    // Calculate billing using TRES formula:
+    // Calculate billing using TRES formula with clamped values:
     // billing = int(max(cpu_weight * cpus, mem_weight * mem_gb, gpu_weight * gpus))
-    const cpuBilling = partitionData.billing.cpu_weight * safeCores;
-    const memBilling = partitionData.billing.mem_weight * safeMemory;
-    const gpuBilling = partitionData.billing.gpu_weight * safeGpus;
+    const cpuBilling = partitionData.billing.cpu_weight * clampedCores;
+    const memBilling = partitionData.billing.mem_weight * clampedMemory;
+    const gpuBilling = partitionData.billing.gpu_weight * clampedGpus;
     
     const billing = Math.floor(Math.max(cpuBilling, memBilling, gpuBilling));
     
     // Calculate cost: cost = (total_minutes * billing) / 10000000
-    const baseCost = (totalMinutes * billing) / 10000000;
+    const baseCost = (clampedTotalMinutes * billing) / 10000000;
     const totalCost = baseCost * (jobType === 'array' ? safeArrayJobCount : 1);
 
     return {
@@ -192,21 +248,39 @@ function App() {
   const currentPartition = PARTITION_RATES[partition];
 
   const formatTime = () => {
+    // Use clamped values for display in cost breakdown
+    const clampedDays = Math.floor(clampedTotalMinutes / (24 * 60));
+    const remainingMinutes = clampedTotalMinutes % (24 * 60);
+    const clampedHours = Math.floor(remainingMinutes / 60);
+    const clampedMins = Math.floor(remainingMinutes % 60);
+    const clampedSecs = Math.floor((clampedTotalMinutes % 1) * 60);
+    
     const parts = [];
-    if (safeDays > 0) parts.push(`${safeDays}d`);
-    if (safeHours > 0) parts.push(`${safeHours}h`);
-    if (safeMinutes > 0) parts.push(`${safeMinutes}m`);
-    if (safeSeconds > 0) parts.push(`${safeSeconds}s`);
+    if (clampedDays > 0) parts.push(`${clampedDays}d`);
+    if (clampedHours > 0) parts.push(`${clampedHours}h`);
+    if (clampedMins > 0) parts.push(`${clampedMins}m`);
+    if (clampedSecs > 0) parts.push(`${clampedSecs}s`);
     return parts.join(' ') || '0m';
   };
 
   const generateSbatchScript = () => {
     const formatTimeForSlurm = () => {
-      const totalHours = safeDays * 24 + safeHours;
-      return `${totalHours.toString().padStart(2, '0')}:${safeMinutes.toString().padStart(2, '0')}:${safeSeconds.toString().padStart(2, '0')}`;
+      // Use clamped values for SLURM script
+      const clampedDays = Math.floor(clampedTotalMinutes / (24 * 60));
+      const remainingMinutes = clampedTotalMinutes % (24 * 60);
+      const clampedHours = Math.floor(remainingMinutes / 60);
+      const clampedMins = Math.floor(remainingMinutes % 60);
+      const clampedSecs = Math.floor((clampedTotalMinutes % 1) * 60);
+      
+      // Format as days-hours:minutes:seconds for SLURM
+      if (clampedDays > 0) {
+        return `${clampedDays}-${clampedHours.toString().padStart(2, '0')}:${clampedMins.toString().padStart(2, '0')}:${clampedSecs.toString().padStart(2, '0')}`;
+      } else {
+        return `${clampedHours.toString().padStart(2, '0')}:${clampedMins.toString().padStart(2, '0')}:${clampedSecs.toString().padStart(2, '0')}`;
+      }
     };
 
-    const memoryPerNode = jobType === 'multicore' ? safeMemory : Math.ceil(safeMemory / safeCores) * safeCores;
+    const memoryPerNode = jobType === 'multicore' ? clampedMemory : Math.ceil(clampedMemory / clampedCores) * clampedCores;
     
     let script = '#!/bin/bash\n';
     script += `#SBATCH --job-name=${jobType}-job\n`;
@@ -215,17 +289,17 @@ function App() {
     
     if (jobType === 'multicore') {
       script += `#SBATCH --ntasks=1\n`;
-      script += `#SBATCH --cpus-per-task=${safeCores}\n`;
+      script += `#SBATCH --cpus-per-task=${clampedCores}\n`;
     } else {
-      script += `#SBATCH --ntasks=${safeCores}\n`;
+      script += `#SBATCH --ntasks=${clampedCores}\n`;
       script += `#SBATCH --cpus-per-task=1\n`;
     }
     
     script += `#SBATCH --mem=${memoryPerNode}G\n`;
     script += `#SBATCH --time=${formatTimeForSlurm()}\n`;
     
-    if (currentPartition.hasGPU && safeGpus > 0) {
-      script += `#SBATCH --gres=gpu:${safeGpus}\n`;
+    if (currentPartition.hasGPU && clampedGpus > 0) {
+      script += `#SBATCH --gres=gpu:${clampedGpus}\n`;
     }
     
     if (jobType === 'array') {
@@ -310,12 +384,18 @@ function App() {
                 type="number" 
                 id="cores"
                 min="1" 
-                max={currentPartition.maxCores}
+                max={getMaxCores()}
                 value={cores} 
-                className={isValueEmpty(cores) ? 'warning' : ''}
-                onChange={handleInputChange(setCores, 1)}
+                className={isValueEmpty(cores) ? 'warning' : isValueOutOfRange(cores, 1, getMaxCores()) ? 'error' : ''}
+                onChange={handleInputChange(setCores, 1, getMaxCores())}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
+              {isValueOutOfRange(cores, 1, getMaxCores()) && (
+                <div className="warning-message">
+                  ⚠️ Value must be between 1 and {getMaxCores()} cores
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="memory">Memory (GB)</label>
@@ -323,11 +403,18 @@ function App() {
                 type="number" 
                 id="memory"
                 min="1" 
+                max={getMaxMemory()}
                 value={memory} 
-                className={isValueEmpty(memory) ? 'warning' : ''}
-                onChange={handleInputChange(setMemory, 1)}
+                className={isValueEmpty(memory) ? 'warning' : isValueOutOfRange(memory, 1, getMaxMemory()) ? 'error' : ''}
+                onChange={handleInputChange(setMemory, 1, getMaxMemory())}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
+              {isValueOutOfRange(memory, 1, getMaxMemory()) && (
+                <div className="warning-message">
+                  ⚠️ Value must be between 1 and {getMaxMemory()} GB
+                </div>
+              )}
             </div>
           </div>
 
@@ -338,12 +425,18 @@ function App() {
                 type="number" 
                 id="gpus"
                 min="0" 
-                max="4"
+                max="5"
                 value={gpus} 
-                className={isValueEmpty(gpus) && currentPartition.hasGPU ? 'warning' : ''}
-                onChange={handleInputChange(setGpus, 0)}
+                className={isValueEmpty(gpus) && currentPartition.hasGPU ? 'warning' : isValueOutOfRange(gpus, 0, 5) ? 'error' : ''}
+                onChange={handleInputChange(setGpus, 0, 5)}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
+              {isValueOutOfRange(gpus, 0, 5) && (
+                <div className="warning-message">
+                  ⚠️ Value must be between 0 and 5 GPUs
+                </div>
+              )}
             </div>
           )}
 
@@ -356,11 +449,17 @@ function App() {
                   id="arrayJobCount"
                   min="1" 
                   value={arrayJobCount} 
-                  className={isValueEmpty(arrayJobCount) ? 'warning' : ''}
+                  className={isValueEmpty(arrayJobCount) ? 'warning' : isValueOutOfRange(arrayJobCount, 1, Infinity) ? 'error' : ''}
                   onChange={handleInputChange(setArrayJobCount, 1)}
                   onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
                   placeholder="Enter number of array jobs"
                 />
+                {isValueOutOfRange(arrayJobCount, 1, Infinity) && (
+                  <div className="warning-message">
+                    ⚠️ Value must be at least 1
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -376,8 +475,10 @@ function App() {
                 id="days"
                 min="0" 
                 value={days} 
-                onChange={handleInputChange(setDays, 0)}
+                className={exceedsMaxRuntime ? 'error' : ''}
+                onChange={handleTimeInputChange(setDays, { days, hours, minutes, seconds }, 'days')}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
             </div>
             <div className="form-group">
@@ -386,10 +487,11 @@ function App() {
                 type="number" 
                 id="hours"
                 min="0" 
-                max="23"
                 value={hours} 
-                onChange={handleInputChange(setHours, 0)}
+                className={exceedsMaxRuntime ? 'error' : ''}
+                onChange={handleTimeInputChange(setHours, { days, hours, minutes, seconds }, 'hours')}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
             </div>
             <div className="form-group">
@@ -398,10 +500,11 @@ function App() {
                 type="number" 
                 id="minutes"
                 min="0" 
-                max="59"
                 value={minutes} 
-                onChange={handleInputChange(setMinutes, 0)}
+                className={exceedsMaxRuntime ? 'error' : ''}
+                onChange={handleTimeInputChange(setMinutes, { days, hours, minutes, seconds }, 'minutes')}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
             </div>
             <div className="form-group">
@@ -410,13 +513,26 @@ function App() {
                 type="number" 
                 id="seconds"
                 min="0" 
-                max="59"
                 value={seconds} 
-                onChange={handleInputChange(setSeconds, 0)}
+                className={exceedsMaxRuntime ? 'error' : ''}
+                onChange={handleTimeInputChange(setSeconds, { days, hours, minutes, seconds }, 'seconds')}
                 onFocus={handleInputFocus}
+                onWheel={handleInputWheel}
               />
             </div>
           </div>
+          {exceedsMaxRuntime && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              color: '#dc2626',
+              padding: '12px',
+              borderRadius: '8px',
+              marginTop: '12px',
+              border: '1px solid rgba(239, 68, 68, 0.3)'
+            }}>
+              ⚠️ Warning: Runtime exceeds 14-day maximum limit. Please reduce the total runtime.
+            </div>
+          )}
         </div>
 
         <div className="results">
@@ -441,16 +557,16 @@ function App() {
             </div>
             <div className="breakdown-item">
               <span>Cores:</span>
-              <span>{safeCores}</span>
+              <span>{clampedCores}</span>
             </div>
             <div className="breakdown-item">
               <span>Memory:</span>
-              <span>{safeMemory} GB</span>
+              <span>{clampedMemory} GB</span>
             </div>
             {currentPartition.hasGPU && (
               <div className="breakdown-item">
                 <span>GPUs:</span>
-                <span>{safeGpus}</span>
+                <span>{clampedGpus}</span>
               </div>
             )}
             {jobType === 'array' && (
@@ -461,7 +577,7 @@ function App() {
             )}
             <div className="breakdown-item">
               <span>Total minutes:</span>
-              <span>{totalMinutes.toFixed(2)}</span>
+              <span>{clampedTotalMinutes.toFixed(2)}</span>
             </div>
             {jobType === 'array' && (
               <div className="breakdown-item">
