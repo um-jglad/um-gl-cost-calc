@@ -1,8 +1,8 @@
 {
-  "name": "gl_cost_calc",
+  "name": "um-gl-cost-calc",
   "version": "1.0.0",
   "description": "Great Lakes HPC Job Cost Calculator",
-  "homepage": "https://um-jglad.github.io/gl_cost_calc",
+  "homepage": "https://um-jglad.github.io/um-gl-cost-calc",
   "type": "module",
   "scripts": {
     "dev": "vite",
