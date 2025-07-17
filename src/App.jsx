@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Great Lakes HPC partition configurations with TRES billing weights
 const PARTITION_RATES = {
@@ -115,6 +115,24 @@ function App() {
   const [isArrayJob, setIsArrayJob] = useState(false);
   const [arrayJobCount, setArrayJobCount] = useState(1);
   const [showSbatch, setShowSbatch] = useState(false);
+  const sbatchRef = useRef(null);
+
+  // Handle SLURM script toggle with smooth scrolling
+  const handleSbatchToggle = () => {
+    const newShowSbatch = !showSbatch;
+    setShowSbatch(newShowSbatch);
+    
+    // If expanding the script, scroll to it after a short delay to allow for expansion animation
+    if (newShowSbatch && sbatchRef.current) {
+      setTimeout(() => {
+        sbatchRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 150); // Wait for expansion to start
+    }
+  };
 
   // Helper function to check if a value is empty or invalid
   const isValueEmpty = (value) => value === '' || value === null || value === undefined || isNaN(value);
@@ -464,9 +482,9 @@ function App() {
             </div>
           )}
 
-          {jobType === 'array' && (
-            <div className="form-group">
-              <div className="array-input-container visible">
+          <div className="form-group">
+            <div className={`collapsible-content ${jobType === 'array' ? 'expanded' : 'collapsed'}`}>
+              <div className="array-input-container">
                 <label htmlFor="arrayJobCount">Number of Jobs in Array</label>
                 <input 
                   type="number" 
@@ -486,7 +504,7 @@ function App() {
                 )}
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="form-section">
@@ -546,14 +564,7 @@ function App() {
             </div>
           </div>
           {exceedsMaxRuntime && (
-            <div style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              color: '#dc2626',
-              padding: '12px',
-              borderRadius: '8px',
-              marginTop: '12px',
-              border: '1px solid rgba(239, 68, 68, 0.3)'
-            }}>
+            <div className="runtime-warning">
               ⚠️ Warning: Runtime exceeds {
                 partition === 'debug' ? '4-hour' : 
                 partition === 'viz' ? '2-hour' : 
@@ -620,7 +631,7 @@ function App() {
           
           <div style={{ marginTop: '16px' }}>
             <button 
-              onClick={() => setShowSbatch(!showSbatch)}
+              onClick={handleSbatchToggle}
               style={{
                 background: 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
@@ -644,8 +655,8 @@ function App() {
           </div>
         </div>
 
-        {showSbatch && (
-          <div className="form-section">
+        <div ref={sbatchRef} className={`collapsible-content ${showSbatch ? 'expanded' : 'collapsed'}`}>
+          <div className="form-section sbatch-section">
             <h3>Example SLURM Batch Script</h3>
             <div style={{
               background: '#2d3748',
@@ -682,7 +693,7 @@ function App() {
               Save this as a <code>.sbatch</code> file and submit with: <code>sbatch your_script.sbatch</code>
             </p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
