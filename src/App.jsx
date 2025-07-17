@@ -146,10 +146,20 @@ function App() {
     }
   };
 
-  // Helper function to validate total runtime doesn't exceed 14 days
+  // Helper function to validate total runtime doesn't exceed partition limits
   const validateTotalRuntime = (newDays, newHours, newMinutes, newSeconds) => {
     const totalMinutes = newDays * 24 * 60 + newHours * 60 + newMinutes + newSeconds / 60;
-    const maxMinutes = 14 * 24 * 60; // 14 days in minutes
+    
+    // Get max runtime based on partition
+    let maxMinutes;
+    if (partition === 'debug') {
+      maxMinutes = 4 * 60; // 4 hours
+    } else if (partition === 'viz') {
+      maxMinutes = 2 * 60; // 2 hours
+    } else {
+      maxMinutes = 14 * 24 * 60; // 14 days for all other partitions
+    }
+    
     return totalMinutes <= maxMinutes;
   };
 
@@ -210,12 +220,21 @@ function App() {
   // Calculate total minutes from raw input
   const totalMinutes = rawDays * 24 * 60 + rawHours * 60 + rawMinutes + rawSeconds / 60;
   
-  // Clamp total runtime to 14 days maximum for calculations
-  const maxMinutes = 14 * 24 * 60;
+  // Get max runtime based on partition
+  let maxMinutes;
+  if (partition === 'debug') {
+    maxMinutes = 4 * 60; // 4 hours
+  } else if (partition === 'viz') {
+    maxMinutes = 2 * 60; // 2 hours
+  } else {
+    maxMinutes = 14 * 24 * 60; // 14 days for all other partitions
+  }
+  
+  // Clamp total runtime to partition maximum for calculations
   const clampedTotalMinutes = Math.min(totalMinutes, maxMinutes);
 
-  // Check if runtime exceeds 14 days
-  const exceedsMaxRuntime = totalMinutes > (14 * 24 * 60);
+  // Check if runtime exceeds partition limit
+  const exceedsMaxRuntime = totalMinutes > maxMinutes;
 
   // Calculate cost using TRES billing weights
   const calculateCost = () => {
@@ -285,12 +304,17 @@ function App() {
     let script = '#!/bin/bash\n';
     script += `#SBATCH --job-name=${jobType}-job\n`;
     script += `#SBATCH --partition=${partition}\n`;
-    script += `#SBATCH --nodes=1\n`;
     
-    if (jobType === 'multicore') {
+    if (jobType === 'array') {
+      // Array jobs should not have --nodes or --ntasks
+      // --cpus-per-task should equal the number of CPUs requested
+      script += `#SBATCH --cpus-per-task=${clampedCores}\n`;
+    } else if (jobType === 'multicore') {
+      script += `#SBATCH --nodes=1\n`;
       script += `#SBATCH --ntasks=1\n`;
       script += `#SBATCH --cpus-per-task=${clampedCores}\n`;
     } else {
+      script += `#SBATCH --nodes=1\n`;
       script += `#SBATCH --ntasks=${clampedCores}\n`;
       script += `#SBATCH --cpus-per-task=1\n`;
     }
@@ -530,7 +554,11 @@ function App() {
               marginTop: '12px',
               border: '1px solid rgba(239, 68, 68, 0.3)'
             }}>
-              ⚠️ Warning: Runtime exceeds 14-day maximum limit. Please reduce the total runtime.
+              ⚠️ Warning: Runtime exceeds {
+                partition === 'debug' ? '4-hour' : 
+                partition === 'viz' ? '2-hour' : 
+                '14-day'
+              } maximum limit for {partition} partition. Please reduce the total runtime.
             </div>
           )}
         </div>
