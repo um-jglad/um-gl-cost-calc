@@ -9,10 +9,6 @@ A modern web application for calculating job costs on the University of Michigan
 - **Real-time Cost Updates**: Instant cost calculations as you adjust parameters
 - **Responsive Design**: Works on desktop and mobile devices
 - **Detailed Breakdown**: Shows cost breakdown by components and configuration
-
-## Supported Partitions & Billing Weights
-
-- **Standard/Debug/Viz**: General purpose compute (CPU=2505, Memory=358)
 - **Large Memory**: High memory nodes (CPU=7704, Memory=185)
 - **GPU**: GPU-accelerated computing (CPU=1370, Memory=304, GPU=27391)
 - **SPGPU**: Shared GPU partition (CPU=4520, Memory=377, GPU=18079)
@@ -31,32 +27,41 @@ A modern web application for calculating job costs on the University of Michigan
 ### Installation
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
+
 2. Start the development server:
+
    ```bash
    npm run dev
    ```
+
 3. Open your browser and navigate to `http://localhost:5173`
 
 ### Building for Production
 
+ 
 ```bash
 npm run build
 ```
 
+ 
 The built files will be in the `dist` directory.
 
 ## Usage
 
-1. **Select Partition**: Choose the appropriate partition for your job
-2. **Configure Resources**:
+1. **Select Job Type**: Choose between Standard, Multicore, or Array job
+2. **Select Partition**: Choose the appropriate partition for your job
+3. **Configure Resources**:
    - Set the number of CPU cores needed
    - Specify memory requirements
    - For GPU partitions, set the number of GPUs
-3. **Set Runtime**: Enter the expected job duration (days, hours, minutes, seconds)
-4. **View Cost**: The estimated cost will be calculated automatically
+   - For Array jobs, set the number of jobs in the array
+4. **Set Runtime**: Enter the expected job duration (days, hours, minutes, seconds)
+5. **View Cost**: The estimated cost will be calculated automatically, including detailed breakdown
+6. **Generate SLURM Script**: Expand the SLURM script section to view and copy an example batch script
 
 ## Cost Calculation
 
@@ -83,5 +88,4 @@ The dominant resource (CPU, memory, or GPU) determines the billing for each job.
 
 ## Rates Source
 
-Rates are based on the official University of Michigan Great Lakes service rates:
-https://its.umich.edu/advanced-research-computing/high-performance-computing/great-lakes/rates
+Rates are based on the [official University of Michigan Great Lakes service rates](https://its.umich.edu/advanced-research-computing/high-performance-computing/great-lakes/rates).
