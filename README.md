@@ -52,10 +52,13 @@ The built files will be in the `dist` directory.
 
 ## Usage
 
-1. **Select Job Type**: Choose between Standard, Multicore, or Array job
+1. **Select Job Type**: Choose between Single Core, Multicore, or Array job
+   - **Single Core Job**: Limited to 1 core (1 node, 1 task, 1 core)
+   - **Multicore Job**: For jobs requiring multiple cores with shared memory
+   - **Array Job**: For multiple independent jobs with identical resource requirements
 2. **Select Partition**: Choose the appropriate partition for your job
 3. **Configure Resources**:
-   - Set the number of CPU cores needed
+   - Set the number of CPU cores needed (automatically set to 1 for Single Core jobs)
    - Specify memory requirements
    - For GPU partitions, set the number of GPUs
    - For Array jobs, set the number of jobs in the array
