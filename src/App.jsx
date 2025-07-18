@@ -229,10 +229,11 @@ function App() {
   // Update default values when partition changes
   useEffect(() => {
     const partitionData = PARTITION_RATES[partition];
-    setCores(partitionData.defaultCores);
-    setMemory(Math.round(partitionData.defaultCores * partitionData.defaultMemoryPerCore));
+    const defaultCores = jobType === 'standard' ? 1 : partitionData.defaultCores;
+    setCores(defaultCores);
+    setMemory(Math.round(defaultCores * partitionData.defaultMemoryPerCore));
     setGpus(partitionData.hasGPU ? 1 : 0);
-  }, [partition]);
+  }, [partition, jobType]);
 
   // Update job configuration when job type changes
   useEffect(() => {
@@ -340,7 +341,7 @@ function App() {
     const memoryPerNode = jobType === 'multicore' ? clampedMemory : Math.ceil(clampedMemory / clampedCores) * clampedCores;
     
     let script = '#!/bin/bash\n';
-    script += `#SBATCH --job-name=${jobType}-job\n`;
+    script += `#SBATCH --job-name=${jobType === 'standard' ? 'single-core' : jobType}-job\n`;
     script += `#SBATCH --partition=${partition}\n`;
     
     if (jobType === 'array') {
@@ -385,7 +386,7 @@ function App() {
       script += 'echo "Array job ID: $SLURM_ARRAY_TASK_ID"\n';
       script += 'your_program --input-file input_${SLURM_ARRAY_TASK_ID}.txt\n';
     } else {
-      script += '# Run standard job\n';
+      script += '# Run single core job\n';
       script += 'your_program\n';
     }
     
@@ -417,13 +418,13 @@ function App() {
               value={jobType} 
               onChange={(e) => setJobType(e.target.value)}
             >
-              <option value="standard">Standard Job</option>
+              <option value="standard">Single Core Job</option>
               <option value="multicore">Multicore Job</option>
               <option value="array">Array Job</option>
             </select>
             <div className="partition-info">
               <p>
-                {jobType === 'standard' && 'Single task job running on one core'}
+                {jobType === 'standard' && 'Single core job (1 node, 1 task, 1 core)'}
                 {jobType === 'multicore' && 'Single task job using multiple cores (shared memory)'}
                 {jobType === 'array' && 'Multiple independent jobs with the same resource requirements'}
               </p>
@@ -453,14 +454,20 @@ function App() {
                 type="number" 
                 id="cores"
                 min="1" 
-                max={getMaxCores()}
+                max={jobType === 'standard' ? 1 : getMaxCores()}
                 value={cores} 
-                className={isValueEmpty(cores) ? 'warning' : isValueOutOfRange(cores, 1, getMaxCores()) ? 'error' : ''}
-                onChange={handleInputChange(setCores, 1, getMaxCores())}
+                className={isValueEmpty(cores) ? 'warning' : isValueOutOfRange(cores, 1, jobType === 'standard' ? 1 : getMaxCores()) ? 'error' : ''}
+                onChange={handleInputChange(setCores, 1, jobType === 'standard' ? 1 : getMaxCores())}
                 onFocus={handleInputFocus}
                 onWheel={handleInputWheel}
+                disabled={jobType === 'standard'}
               />
-              {isValueOutOfRange(cores, 1, getMaxCores()) && (
+              {jobType === 'standard' && cores > 1 && (
+                <div className="warning-message">
+                  ⚠️ Standard jobs are limited to 1 core. Consider switching to "Multicore Job" for multiple cores.
+                </div>
+              )}
+              {jobType !== 'standard' && isValueOutOfRange(cores, 1, getMaxCores()) && (
                 <div className="warning-message">
                   ⚠️ Value must be between 1 and {getMaxCores()} cores
                 </div>
@@ -611,7 +618,7 @@ function App() {
             <h4>Cost Breakdown</h4>
             <div className="breakdown-item">
               <span>Job Type:</span>
-              <span>{jobType === 'standard' ? 'Standard' : jobType === 'multicore' ? 'Multicore' : 'Array'}</span>
+              <span>{jobType === 'standard' ? 'Single Core' : jobType === 'multicore' ? 'Multicore' : 'Array'}</span>
             </div>
             <div className="breakdown-item">
               <span>Partition:</span>

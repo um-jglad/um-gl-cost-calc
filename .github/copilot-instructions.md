@@ -1,6 +1,6 @@
 # AI Coding Assistant Instructions
 
-Welcome to the Great Lakes HPC Cost Calculator codebase. These instructions will help you get up to speed and contribute effectively.
+These instructions will help you get up to speed and contribute effectively.
 
 ## 1. Project Structure & Entry Points
 
@@ -52,14 +52,9 @@ Welcome to the Great Lakes HPC Cost Calculator codebase. These instructions will
 - **GitHub Pages**: configured in `package.json` (`gh-pages`) and `vite.config.js` base path
 - No backend or API calls; all computation is client-side
 
-## 6. Testing & Debugging
-
-- No test suite present; use browser dev tools and manual QA
-- Use Vite’s fast HMR to iterate on UI and logic in `App.jsx`
-
-## 7. Contribution Notes
+## 6. Contribution Notes
 
 - Keep business logic in `App.jsx` self-contained; extract to helper modules only if repeated or for clarity
 - If adding new partitions, update `PARTITION_RATES` and ensure default values and limits are correct
 - When modifying SLURM script, maintain existing comment structure and placeholder values (`YOUR_ACCOUNT`, `YOUR_EMAIL`)
-- If a feature is implemented or changed, update the README.md with a brief description and usage instructions
+- If a feature is implemented or changed, review the  README.md and update it as needed.
