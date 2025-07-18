@@ -116,6 +116,7 @@ function App() {
   const [arrayJobCount, setArrayJobCount] = useState(1);
   const [showSbatch, setShowSbatch] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const sbatchRef = useRef(null);
 
   // Initialize theme from localStorage
@@ -151,6 +152,18 @@ function App() {
           inline: 'nearest'
         });
       }, 150); // Wait for expansion to start
+    }
+  };
+
+  // Handle copy to clipboard with feedback
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generateSbatchScript());
+      setIsCopied(true);
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
     }
   };
 
@@ -705,21 +718,22 @@ function App() {
               position: 'relative'
             }}>
               <button
-                onClick={() => navigator.clipboard.writeText(generateSbatchScript())}
+                onClick={handleCopyToClipboard}
                 style={{
                   position: 'absolute',
                   top: '8px',
                   right: '8px',
-                  background: 'var(--sbatch-button-bg)',
+                  background: isCopied ? 'var(--success-color)' : 'var(--sbatch-button-bg)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   padding: '4px 8px',
                   fontSize: '0.75rem',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease'
                 }}
               >
-                Copy
+                {isCopied ? 'Copied!' : 'Copy'}
               </button>
               {generateSbatchScript()}
             </div>

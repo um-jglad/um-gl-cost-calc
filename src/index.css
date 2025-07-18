@@ -41,6 +41,7 @@
   --sbatch-bg: #2d3748;
   --sbatch-text: #e2e8f0;
   --sbatch-button-bg: #4a5568;
+  --success-color: #28a745;
   --toggle-bg: rgba(189, 189, 189, 0.156);
   --toggle-border: rgba(43, 43, 43, 0.3);
   --toggle-hover-bg: rgba(112, 112, 112, 0.3);
@@ -83,6 +84,7 @@
   --sbatch-bg: #1a1a1a;
   --sbatch-text: #e2e8f0;
   --sbatch-button-bg: #404040;
+  --success-color: #28a745;
   --toggle-bg: rgba(255, 203, 5, 0.1);
   --toggle-border: rgba(255, 203, 5, 0.3);
   --toggle-hover-bg: rgba(255, 203, 5, 0.2);
