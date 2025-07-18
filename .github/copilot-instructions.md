@@ -1,6 +1,8 @@
 # AI Coding Assistant Instructions
 
 These instructions will help you get up to speed and contribute effectively.
+Ensure that you read through them before starting work on the project.
+Remember to update the README.md and this file as you make changes to the codebase.
 
 ## 1. Project Structure & Entry Points
 
