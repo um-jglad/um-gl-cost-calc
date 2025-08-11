@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+// GitHub icon link fixed in the top-right is rendered inline
 
 // Great Lakes HPC partition configurations with TRES billing weights
 const PARTITION_RATES = {
@@ -407,343 +408,458 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <div className="header">
+    <>
+            <div className="top-controls">
         <button 
           className="theme-toggle"
           onClick={toggleTheme}
           aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
         >
-          {isDarkMode ? '☀️' : '🌙'} {isDarkMode ? 'Light' : 'Dark'}
+          <svg width="24" height="24" className={`theme-icon ${isDarkMode ? 'sun-icon' : 'moon-icon'}`}>
+            {isDarkMode ? (
+              // Sun icon for dark mode (click to go to light)
+              <>
+                <circle cx="12" cy="12" r="4" fill="currentColor" />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="12"
+                  y1="2"
+                  x2="12"
+                  y2="5"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="12"
+                  y1="19"
+                  x2="12"
+                  y2="22"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="4.93"
+                  y1="4.93"
+                  x2="7.05"
+                  y2="7.05"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="16.95"
+                  y1="16.95"
+                  x2="19.07"
+                  y2="19.07"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="2"
+                  y1="12"
+                  x2="5"
+                  y2="12"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="19"
+                  y1="12"
+                  x2="22"
+                  y2="12"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="4.93"
+                  y1="19.07"
+                  x2="7.05"
+                  y2="16.95"
+                />
+                <line
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  x1="16.95"
+                  y1="7.05"
+                  x2="19.07"
+                  y2="4.93"
+                />
+              </>
+            ) : (
+              // Moon icon for light mode (click to go to dark)
+              <path
+                fill="currentColor"
+                d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+              />
+            )}
+          </svg>
         </button>
-        <h1>Great Lakes HPC Cost Calculator</h1>
-        <p>Calculate the cost of your HPC jobs on the University of Michigan Great Lakes cluster</p>
+        <a
+          href="https://github.com/um-jglad/um-gl-cost-calc"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="github-link"
+          aria-label="View source on GitHub"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              fillRule="evenodd"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59
+                 .4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49
+                 -2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                 -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82
+                 .72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07
+                 -1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                 -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82
+                 .64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27
+                 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                 .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95
+                 .29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2
+                 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8
+                 c0-4.42-3.58-8-8-8z"
+            />
+          </svg>
+        </a>
       </div>
+      <div className="app">
+        <div className="header">
+          <h1>Great Lakes HPC Cost Calculator</h1>
+          <p>Calculate the cost of your HPC jobs on the University of Michigan Great Lakes cluster</p>
+        </div>
 
-      <div className="calculator">
-        <div className="form-section">
-          <h3>Job Configuration</h3>
-          
-          <div className="form-group">
-            <label htmlFor="jobType">Job Type</label>
-            <select 
-              id="jobType"
-              value={jobType} 
-              onChange={(e) => setJobType(e.target.value)}
-            >
-              <option value="standard">Single Core Job</option>
-              <option value="multicore">Multicore Job</option>
-              <option value="array">Array Job</option>
-            </select>
-            <div className="partition-info">
-              <p>
-                {jobType === 'standard' && 'Single core job (1 node, 1 task, 1 core)'}
-                {jobType === 'multicore' && 'Single task job using multiple cores (shared memory)'}
-                {jobType === 'array' && 'Multiple independent jobs with the same resource requirements'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="partition">Partition</label>
-            <select 
-              id="partition"
-              value={partition} 
-              onChange={(e) => setPartition(e.target.value)}
-            >
-              {Object.entries(PARTITION_RATES).map(([key, data]) => (
-                <option key={key} value={key}>{data.name}</option>
-              ))}
-            </select>
-            <div className="partition-info">
-              <p>{currentPartition.description}</p>
-            </div>
-          </div>
-
-          <div className="form-row">
+        <div className="calculator">
+          <div className="form-section">
+            <h3>Job Configuration</h3>
+            
             <div className="form-group">
-              <label htmlFor="cores">CPU Cores</label>
-              <input 
-                type="number" 
-                id="cores"
-                min="1" 
-                max={jobType === 'standard' ? 1 : getMaxCores()}
-                value={cores} 
-                className={isValueEmpty(cores) ? 'warning' : isValueOutOfRange(cores, 1, jobType === 'standard' ? 1 : getMaxCores()) ? 'error' : ''}
-                onChange={handleInputChange(setCores, 1, jobType === 'standard' ? 1 : getMaxCores())}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-                disabled={jobType === 'standard'}
-              />
-              {jobType === 'standard' && cores > 1 && (
-                <div className="warning-message">
-                  ⚠️ Standard jobs are limited to 1 core. Consider switching to "Multicore Job" for multiple cores.
-                </div>
-              )}
-              {jobType !== 'standard' && isValueOutOfRange(cores, 1, getMaxCores()) && (
-                <div className="warning-message">
-                  ⚠️ Value must be between 1 and {getMaxCores()} cores
-                </div>
-              )}
+              <label htmlFor="jobType">Job Type</label>
+              <select 
+                id="jobType"
+                value={jobType} 
+                onChange={(e) => setJobType(e.target.value)}
+              >
+                <option value="standard">Single Core Job</option>
+                <option value="multicore">Multicore Job</option>
+                <option value="array">Array Job</option>
+              </select>
+              <div className="partition-info">
+                <p>
+                  {jobType === 'standard' && 'Single core job (1 node, 1 task, 1 core)'}
+                  {jobType === 'multicore' && 'Single task job using multiple cores (shared memory)'}
+                  {jobType === 'array' && 'Multiple independent jobs with the same resource requirements'}
+                </p>
+              </div>
             </div>
+            
             <div className="form-group">
-              <label htmlFor="memory">Memory (GB)</label>
-              <input 
-                type="number" 
-                id="memory"
-                min="1" 
-                max={getMaxMemory()}
-                value={memory} 
-                className={isValueEmpty(memory) ? 'warning' : isValueOutOfRange(memory, 1, getMaxMemory()) ? 'error' : ''}
-                onChange={handleInputChange(setMemory, 1, getMaxMemory())}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-              />
-              {isValueOutOfRange(memory, 1, getMaxMemory()) && (
-                <div className="warning-message">
-                  ⚠️ Value must be between 1 and {getMaxMemory()} GB
-                </div>
-              )}
+              <label htmlFor="partition">Partition</label>
+              <select 
+                id="partition"
+                value={partition} 
+                onChange={(e) => setPartition(e.target.value)}
+              >
+                {Object.entries(PARTITION_RATES).map(([key, data]) => (
+                  <option key={key} value={key}>{data.name}</option>
+                ))}
+              </select>
+              <div className="partition-info">
+                <p>{currentPartition.description}</p>
+              </div>
             </div>
-          </div>
 
-          {currentPartition.hasGPU && (
-            <div className="form-group">
-              <label htmlFor="gpus">GPUs</label>
-              <input 
-                type="number" 
-                id="gpus"
-                min="0" 
-                max="5"
-                value={gpus} 
-                className={isValueEmpty(gpus) && currentPartition.hasGPU ? 'warning' : isValueOutOfRange(gpus, 0, 5) ? 'error' : ''}
-                onChange={handleInputChange(setGpus, 0, 5)}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-              />
-              {isValueOutOfRange(gpus, 0, 5) && (
-                <div className="warning-message">
-                  ⚠️ Value must be between 0 and 5 GPUs
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="form-group">
-            <div className={`collapsible-content ${jobType === 'array' ? 'expanded' : 'collapsed'}`}>
-              <div className="array-input-container">
-                <label htmlFor="arrayJobCount">Number of Jobs in Array</label>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="cores">CPU Cores</label>
                 <input 
                   type="number" 
-                  id="arrayJobCount"
+                  id="cores"
                   min="1" 
-                  value={arrayJobCount} 
-                  className={isValueEmpty(arrayJobCount) ? 'warning' : isValueOutOfRange(arrayJobCount, 1, Infinity) ? 'error' : ''}
-                  onChange={handleInputChange(setArrayJobCount, 1)}
+                  max={jobType === 'standard' ? 1 : getMaxCores()}
+                  value={cores} 
+                  className={isValueEmpty(cores) ? 'warning' : isValueOutOfRange(cores, 1, jobType === 'standard' ? 1 : getMaxCores()) ? 'error' : ''}
+                  onChange={handleInputChange(setCores, 1, jobType === 'standard' ? 1 : getMaxCores())}
                   onFocus={handleInputFocus}
                   onWheel={handleInputWheel}
-                  placeholder="Enter number of array jobs"
+                  disabled={jobType === 'standard'}
                 />
-                {isValueOutOfRange(arrayJobCount, 1, Infinity) && (
+                {jobType === 'standard' && cores > 1 && (
                   <div className="warning-message">
-                    ⚠️ Value must be at least 1
+                    ⚠️ Standard jobs are limited to 1 core. Consider switching to "Multicore Job" for multiple cores.
+                  </div>
+                )}
+                {jobType !== 'standard' && isValueOutOfRange(cores, 1, getMaxCores()) && (
+                  <div className="warning-message">
+                    ⚠️ Value must be between 1 and {getMaxCores()} cores
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="memory">Memory (GB)</label>
+                <input 
+                  type="number" 
+                  id="memory"
+                  min="1" 
+                  max={getMaxMemory()}
+                  value={memory} 
+                  className={isValueEmpty(memory) ? 'warning' : isValueOutOfRange(memory, 1, getMaxMemory()) ? 'error' : ''}
+                  onChange={handleInputChange(setMemory, 1, getMaxMemory())}
+                  onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
+                />
+                {isValueOutOfRange(memory, 1, getMaxMemory()) && (
+                  <div className="warning-message">
+                    ⚠️ Value must be between 1 and {getMaxMemory()} GB
                   </div>
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="form-section">
-          <h3>Runtime</h3>
-          <div className="time-inputs">
-            <div className="form-group">
-              <label htmlFor="days">Days</label>
-              <input 
-                type="number" 
-                id="days"
-                min="0" 
-                value={days} 
-                className={exceedsMaxRuntime ? 'error' : ''}
-                onChange={handleTimeInputChange(setDays, { days, hours, minutes, seconds }, 'days')}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="hours">Hours</label>
-              <input 
-                type="number" 
-                id="hours"
-                min="0" 
-                value={hours} 
-                className={exceedsMaxRuntime ? 'error' : ''}
-                onChange={handleTimeInputChange(setHours, { days, hours, minutes, seconds }, 'hours')}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="minutes">Minutes</label>
-              <input 
-                type="number" 
-                id="minutes"
-                min="0" 
-                value={minutes} 
-                className={exceedsMaxRuntime ? 'error' : ''}
-                onChange={handleTimeInputChange(setMinutes, { days, hours, minutes, seconds }, 'minutes')}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="seconds">Seconds</label>
-              <input 
-                type="number" 
-                id="seconds"
-                min="0" 
-                value={seconds} 
-                className={exceedsMaxRuntime ? 'error' : ''}
-                onChange={handleTimeInputChange(setSeconds, { days, hours, minutes, seconds }, 'seconds')}
-                onFocus={handleInputFocus}
-                onWheel={handleInputWheel}
-              />
-            </div>
-          </div>
-          {exceedsMaxRuntime && (
-            <div className="runtime-warning">
-              ⚠️ Warning: Runtime exceeds {
-                partition === 'debug' ? '4-hour' : 
-                partition === 'viz' ? '2-hour' : 
-                '14-day'
-              } maximum limit for {partition} partition. Please reduce the total runtime.
-            </div>
-          )}
-        </div>
-
-        <div className="results">
-          <h3>Estimated Job Cost</h3>
-          <div className="cost-display">
-            ${cost.total.toFixed(2)}
-          </div>
-          
-          <div className="cost-breakdown">
-            <h4>Cost Breakdown</h4>
-            <div className="breakdown-item">
-              <span>Job Type:</span>
-              <span>{jobType === 'standard' ? 'Single Core' : jobType === 'multicore' ? 'Multicore' : 'Array'}</span>
-            </div>
-            <div className="breakdown-item">
-              <span>Partition:</span>
-              <span>{currentPartition.name}</span>
-            </div>
-            <div className="breakdown-item">
-              <span>Runtime:</span>
-              <span>{formatTime()}</span>
-            </div>
-            <div className="breakdown-item">
-              <span>Cores:</span>
-              <span>{clampedCores}</span>
-            </div>
-            <div className="breakdown-item">
-              <span>Memory:</span>
-              <span>{clampedMemory} GB</span>
-            </div>
             {currentPartition.hasGPU && (
-              <div className="breakdown-item">
-                <span>GPUs:</span>
-                <span>{clampedGpus}</span>
+              <div className="form-group">
+                <label htmlFor="gpus">GPUs</label>
+                <input 
+                  type="number" 
+                  id="gpus"
+                  min="0" 
+                  max="5"
+                  value={gpus} 
+                  className={isValueEmpty(gpus) && currentPartition.hasGPU ? 'warning' : isValueOutOfRange(gpus, 0, 5) ? 'error' : ''}
+                  onChange={handleInputChange(setGpus, 0, 5)}
+                  onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
+                />
+                {isValueOutOfRange(gpus, 0, 5) && (
+                  <div className="warning-message">
+                    ⚠️ Value must be between 0 and 5 GPUs
+                  </div>
+                )}
               </div>
             )}
-            {jobType === 'array' && (
-              <div className="breakdown-item">
-                <span>Array Jobs:</span>
-                <span>{safeArrayJobCount}</span>
-              </div>
-            )}
-            <div className="breakdown-item">
-              <span>Total minutes:</span>
-              <span>{clampedTotalMinutes.toFixed(2)}</span>
-            </div>
-            {jobType === 'array' && (
-              <div className="breakdown-item">
-                <span>Cost per job:</span>
-                <span>${(cost.total / cost.arrayMultiplier).toFixed(6)}</span>
-              </div>
-            )}
-          </div>
-          <p style={{ marginTop: '8px', fontSize: '0.9rem', opacity: '0.9' }}>
-            This is the maximum cost estimate. Actual cost may be lower dependent on runtime.
-          </p>
-          
-          <div style={{ marginTop: '16px' }}>
-            <button 
-              onClick={handleSbatchToggle}
-              style={{
-                background: 'var(--toggle-bg)',
-                color: 'var(--results-text)',
-                border: '1px solid var(--toggle-border)',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'var(--toggle-hover-bg)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'var(--toggle-bg)';
-              }}
-            >
-              {showSbatch ? 'Hide' : 'Show'} SLURM Script
-            </button>
-          </div>
-        </div>
 
-        <div ref={sbatchRef} className={`collapsible-content ${showSbatch ? 'expanded' : 'collapsed'}`}>
-          <div className="form-section sbatch-section">
-            <h3>Example SLURM Batch Script</h3>
-            <div style={{
-              background: 'var(--sbatch-bg)',
-              color: 'var(--sbatch-text)',
-              padding: '16px',
-              borderRadius: '8px',
-              fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
-              fontSize: '0.85rem',
-              lineHeight: '1.4',
-              overflow: 'auto',
-              whiteSpace: 'pre-wrap',
-              position: 'relative'
-            }}>
-              <button
-                onClick={handleCopyToClipboard}
+            <div className="form-group">
+              <div className={`collapsible-content ${jobType === 'array' ? 'expanded' : 'collapsed'}`}>
+                <div className="array-input-container">
+                  <label htmlFor="arrayJobCount">Number of Jobs in Array</label>
+                  <input 
+                    type="number" 
+                    id="arrayJobCount"
+                    min="1" 
+                    value={arrayJobCount} 
+                    className={isValueEmpty(arrayJobCount) ? 'warning' : isValueOutOfRange(arrayJobCount, 1, Infinity) ? 'error' : ''}
+                    onChange={handleInputChange(setArrayJobCount, 1)}
+                    onFocus={handleInputFocus}
+                    onWheel={handleInputWheel}
+                    placeholder="Enter number of array jobs"
+                  />
+                  {isValueOutOfRange(arrayJobCount, 1, Infinity) && (
+                    <div className="warning-message">
+                      ⚠️ Value must be at least 1
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Runtime</h3>
+            <div className="time-inputs">
+              <div className="form-group">
+                <label htmlFor="days">Days</label>
+                <input 
+                  type="number" 
+                  id="days"
+                  min="0" 
+                  value={days} 
+                  className={exceedsMaxRuntime ? 'error' : ''}
+                  onChange={handleTimeInputChange(setDays, { days, hours, minutes, seconds }, 'days')}
+                  onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="hours">Hours</label>
+                <input 
+                  type="number" 
+                  id="hours"
+                  min="0" 
+                  value={hours} 
+                  className={exceedsMaxRuntime ? 'error' : ''}
+                  onChange={handleTimeInputChange(setHours, { days, hours, minutes, seconds }, 'hours')}
+                  onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="minutes">Minutes</label>
+                <input 
+                  type="number" 
+                  id="minutes"
+                  min="0" 
+                  value={minutes} 
+                  className={exceedsMaxRuntime ? 'error' : ''}
+                  onChange={handleTimeInputChange(setMinutes, { days, hours, minutes, seconds }, 'minutes')}
+                  onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="seconds">Seconds</label>
+                <input 
+                  type="number" 
+                  id="seconds"
+                  min="0" 
+                  value={seconds} 
+                  className={exceedsMaxRuntime ? 'error' : ''}
+                  onChange={handleTimeInputChange(setSeconds, { days, hours, minutes, seconds }, 'seconds')}
+                  onFocus={handleInputFocus}
+                  onWheel={handleInputWheel}
+                />
+              </div>
+            </div>
+            {exceedsMaxRuntime && (
+              <div className="runtime-warning">
+                ⚠️ Warning: Runtime exceeds {
+                  partition === 'debug' ? '4-hour' : 
+                  partition === 'viz' ? '2-hour' : 
+                  '14-day'
+                } maximum limit for {partition} partition. Please reduce the total runtime.
+              </div>
+            )}
+          </div>
+
+          <div className="results">
+            <h3>Estimated Job Cost</h3>
+            <div className="cost-display">
+              ${cost.total.toFixed(2)}
+            </div>
+            
+            <div className="cost-breakdown">
+              <h4>Cost Breakdown</h4>
+              <div className="breakdown-item">
+                <span>Job Type:</span>
+                <span>{jobType === 'standard' ? 'Single Core' : jobType === 'multicore' ? 'Multicore' : 'Array'}</span>
+              </div>
+              <div className="breakdown-item">
+                <span>Partition:</span>
+                <span>{currentPartition.name}</span>
+              </div>
+              <div className="breakdown-item">
+                <span>Runtime:</span>
+                <span>{formatTime()}</span>
+              </div>
+              <div className="breakdown-item">
+                <span>Cores:</span>
+                <span>{clampedCores}</span>
+              </div>
+              <div className="breakdown-item">
+                <span>Memory:</span>
+                <span>{clampedMemory} GB</span>
+              </div>
+              {currentPartition.hasGPU && (
+                <div className="breakdown-item">
+                  <span>GPUs:</span>
+                  <span>{clampedGpus}</span>
+                </div>
+              )}
+              {jobType === 'array' && (
+                <div className="breakdown-item">
+                  <span>Array Jobs:</span>
+                  <span>{safeArrayJobCount}</span>
+                </div>
+              )}
+              <div className="breakdown-item">
+                <span>Total minutes:</span>
+                <span>{clampedTotalMinutes.toFixed(2)}</span>
+              </div>
+              {jobType === 'array' && (
+                <div className="breakdown-item">
+                  <span>Cost per job:</span>
+                  <span>${(cost.total / cost.arrayMultiplier).toFixed(6)}</span>
+                </div>
+              )}
+            </div>
+            <p style={{ marginTop: '8px', fontSize: '0.9rem', opacity: '0.9' }}>
+              This is the maximum cost estimate. Actual cost may be lower dependent on runtime.
+            </p>
+            
+            <div style={{ marginTop: '16px' }}>
+              <button 
+                onClick={handleSbatchToggle}
                 style={{
-                  position: 'absolute',
-                  top: '8px',
-                  right: '8px',
-                  background: isCopied ? 'var(--success-color)' : 'var(--sbatch-button-bg)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
+                  background: 'var(--toggle-bg)',
+                  color: 'var(--results-text)',
+                  border: '1px solid var(--toggle-border)',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s ease'
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'var(--toggle-hover-bg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'var(--toggle-bg)';
                 }}
               >
-                {isCopied ? 'Copied!' : 'Copy'}
+                {showSbatch ? 'Hide' : 'Show'} SLURM Script
               </button>
-              {generateSbatchScript()}
             </div>
-            <p style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              Save this as a <code>.sbatch</code> file and submit with: <code>sbatch your_script.sbatch</code>
-            </p>
+          </div>
+
+          <div ref={sbatchRef} className={`collapsible-content ${showSbatch ? 'expanded' : 'collapsed'}`}>
+            <div className="form-section sbatch-section">
+              <h3>Example SLURM Batch Script</h3>
+              <div style={{
+                background: 'var(--sbatch-bg)',
+                color: 'var(--sbatch-text)',
+                padding: '16px',
+                borderRadius: '8px',
+                fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
+                fontSize: '0.85rem',
+                lineHeight: '1.4',
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                position: 'relative'
+              }}>
+                <button
+                  onClick={handleCopyToClipboard}
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    background: isCopied ? 'var(--success-color)' : 'var(--sbatch-button-bg)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                >
+                  {isCopied ? 'Copied!' : 'Copy'}
+                </button>
+                {generateSbatchScript()}
+              </div>
+              <p style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Save this as a <code>.sbatch</code> file and submit with: <code>sbatch your_script.sbatch</code>
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

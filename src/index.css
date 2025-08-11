@@ -42,7 +42,7 @@
   --sbatch-text: #e2e8f0;
   --sbatch-button-bg: #4a5568;
   --success-color: #28a745;
-  --toggle-bg: rgba(189, 189, 189, 0.156);
+  --toggle-bg: white;
   --toggle-border: rgba(43, 43, 43, 0.3);
   --toggle-hover-bg: rgba(112, 112, 112, 0.3);
 }
@@ -153,31 +153,53 @@ body {
   text-align: center;
   margin-bottom: 40px;
   position: relative;
-  padding-top: 50px; /* Add space for the toggle button */
+  padding-top: 20px; /* Reduced since buttons are now fixed */
+}
+
+.top-controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
 }
 
 .theme-toggle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: var(--toggle-bg);
-  color: var(--text-heading);
-  border: 1px solid var(--toggle-border);
-  border-radius: 8px;
-  padding: 8px 12px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: 50%;
+  padding: 8px;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
-  z-index: 10; /* Ensure it's above other content */
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.theme-toggle svg {
+  display: block;
+  margin: 0 auto;
+  flex-shrink: 0;
 }
 
 .theme-toggle:hover {
-  background: var(--toggle-hover-bg);
-  transform: translateY(-1px);
+  color: var(--button-hover-text);
+  background: var(--button-hover-bg);
+  border-color: var(--button-hover-border);
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px var(--card-shadow);
 }
 
 .theme-toggle:focus {
@@ -186,6 +208,88 @@ body {
 }
 
 .theme-toggle:active {
+  transform: translateY(0) scale(0.95);
+  transition: all 0.1s ease;
+}
+
+.theme-icon {
+  transition: all 0.3s ease;
+  transform-origin: center;
+  display: block;
+  margin: auto;
+}
+
+.theme-toggle:hover .theme-icon {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.sun-icon {
+  animation: sunRotate 0.5s ease-in-out;
+}
+
+.moon-icon {
+  animation: moonSlide 0.5s ease-in-out;
+}
+
+@keyframes sunRotate {
+  from {
+    transform: rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(180deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes moonSlide {
+  from {
+    transform: translateX(-10px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.github-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  background: var(--card-bg);
+  border-radius: 50%;
+  padding: 8px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  border: 1px solid var(--input-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.github-link svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  display: block;
+}
+
+.github-link:hover {
+  color: var(--button-hover-text);
+  background: var(--button-hover-bg);
+  border-color: var(--button-hover-border);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--card-shadow);
+}
+
+.github-link:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.3);
+}
+
+.github-link:active {
   transform: translateY(0);
 }
 
@@ -456,7 +560,6 @@ body {
   gap: 8px;
 }
 
-/* Smooth collapsible content */
 .collapsible-content {
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease;
@@ -535,18 +638,36 @@ code {
   }
   
   .header {
-    padding-top: 60px; /* More space on mobile */
+    padding-top: 20px; /* Reduced padding since buttons are fixed */
   }
   
   .header h1 {
     font-size: 2rem;
   }
   
-  .theme-toggle {
-    top: 10px; /* Move down slightly on mobile */
+  .top-controls {
+    top: 10px;
     right: 10px;
-    font-size: 0.8rem;
-    padding: 6px 10px;
+    gap: 6px;
+  }
+  
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .github-link {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+  
+  .github-link svg {
+    width: 24px;
+    height: 24px;
   }
   
   .form-row,
