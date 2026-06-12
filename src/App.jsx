@@ -160,7 +160,7 @@ const CLUSTER_CONFIG = {
         defaultCores: 16,
         defaultMemoryPerCore: 12, // GB (192 GB / 16 cores per billing unit)
         maxCores: 128,
-        maxMemory: 1506, // GB
+        maxMemory: 1506, // GB (from scontrol TRES mem=1506G)
         hasGPU: true,
         description: 'GPU partition with RTX 6000 Blackwell Server Edition GPUs (96GB each), 8 GPUs per node',
         // TRESBillingWeights from scontrol on Armis2, 2026-06-12
