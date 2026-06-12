@@ -90,6 +90,17 @@ const CLUSTER_CONFIG = {
         hasGPU: true,
         description: 'SPGPU partition with A40 GPUs',
         billing: { cpu_weight: 4520, mem_weight: 377, gpu_weight: 18079 }
+      },
+      'gpu-rtx6000': {
+        name: 'GPU RTX6000',
+        defaultCores: 16,
+        defaultMemoryPerCore: 12, // GB (192 GB / 16 cores per billing unit)
+        maxCores: 128,
+        maxMemory: 1506, // GB (18072 GB / 12 nodes)
+        hasGPU: true,
+        description: 'GPU partition with RTX 6000 Blackwell Server Edition GPUs (96GB each), 8 GPUs per node',
+        // TRESBillingWeights from scontrol on GL, 2026-06-12
+        billing: { cpu_weight: 2413, mem_weight: 201, gpu_weight: 38610 }
       }
     }
   },
@@ -143,6 +154,17 @@ const CLUSTER_CONFIG = {
           titanv: { label: 'Titan V', maxCores: 16, maxMemory: 123 }
         },
         defaultGpuType: 'v100'
+      },
+      'gpu-rtx6000': {
+        name: 'GPU RTX6000',
+        defaultCores: 16,
+        defaultMemoryPerCore: 12, // GB (192 GB / 16 cores per billing unit)
+        maxCores: 128,
+        maxMemory: 1506, // GB
+        hasGPU: true,
+        description: 'GPU partition with RTX 6000 Blackwell Server Edition GPUs (96GB each), 8 GPUs per node',
+        // TRESBillingWeights from scontrol on Armis2, 2026-06-12
+        billing: { cpu_weight: 2484, mem_weight: 207, gpu_weight: 39738 }
       }
     }
   }

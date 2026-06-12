@@ -21,15 +21,18 @@ A modern web application for calculating job costs on the University of Michigan
 - GPU (CPU=1370, Memory=304, GPU=27391)
 - SPGPU (CPU=4520, Memory=377, GPU=18079)
 - GPU MIG40 (CPU=3424, Memory=221, GPU=27391)
+- GPU RTX6000 (CPU=2413, Memory=201, GPU=38610)
 
 ### Armis2 partitions
 
 - Standard/Debug (derived weights CPU≈2900, Memory≈414)
 - Large Memory (derived weights CPU≈8037, Memory≈299)
 - GPU (derived weights CPU≈2900, Memory≈414, GPU≈28157)
+- GPU RTX6000 (CPU=2484, Memory=207, GPU=39738)
 
 > [!NOTE]
-> Billing weights were pulled using `scontrol` on 07/01/2025.
+> Great Lakes billing weights were pulled using `scontrol` on 07/01/2025, except GPU RTX6000 (2026-06-12).
+> Armis2 billing weights are derived from published per-minute rates, except GPU RTX6000 (2026-06-12).
 
 ## Getting Started
 
